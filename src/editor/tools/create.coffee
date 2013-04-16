@@ -3,19 +3,37 @@ Editor.Tool.Create = (I={}) ->
 
   I.name = "Create"
 
-  lines = []
+  wall = null
+
+  # Snap point to nearby existing point if appropriate
+  snapPoint = (point, snapDistance=20) ->
+    existingPoints = wall.lines().invoke("endpoints").flatten()
+
+    nearestPoint = existingPoints.minimum (existingPoint) ->
+      point.distance(existingPoint)
+
+    if nearestPoint and point.distance(nearestPoint) < snapDistance
+      return nearestPoint.copy()
+
+    return  point
 
   self = Editor.Tool(I).extend
     pressed: (worldPoint) ->
-      clickStart = worldPoint
+      clickStart = snapPoint(worldPoint)
 
     released: (worldPoint) ->
       if clickStart
-        lines.push Line
+        wall.addLine Line
           start: clickStart
-          end: worldPoint
+          end: I.currentPosition
 
       clickStart = undefined
+
+  self.on "updatePosition", (worldPoint) ->
+    # TODO: Multiple walls
+    wall = engine.first("Wall")
+
+    I.currentPosition = snapPoint(worldPoint)
 
   self.on "draw", (canvas) ->
     if clickStart
@@ -26,8 +44,6 @@ Editor.Tool.Create = (I={}) ->
       canvas.drawLine Object.extend {}, line,
         color: "rgba(255, 0, 255, 0.75)"
 
-    lines.each (line) ->
-      canvas.drawLine Object.extend {}, line,
-        color: "#00A"
+    wall.trigger "afterTransform", canvas
 
   return self
