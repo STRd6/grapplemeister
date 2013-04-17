@@ -17,7 +17,7 @@ Player = (I={}) ->
   self.include "Player.Input"
   self.include "Player.Physics"
 
-  self.debug
-    filter: "changed"
+  # self.debug
+  #   filter: "changed"
 
   self

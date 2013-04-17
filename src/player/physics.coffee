@@ -1,5 +1,6 @@
 Player.Physics = (I, self) ->
-  VELOCITY_MAX_X = 500
+  maxWaterVelocity = 800
+  waterFriction = 100
 
   gravity = Point(0, 3600)
   coefficientOfRestitution = 0.75
@@ -8,21 +9,31 @@ Player.Physics = (I, self) ->
     air: (dt) ->
       I.velocity.y += gravity.y * dt
 
-      # I.velocity.x = I.velocity.x.clamp(-VELOCITY_MAX_X, VELOCITY_MAX_X)
+    water: (dt) ->
+      speed = Math.min(I.velocity.length(), maxWaterVelocity)
+      speed -= waterFriction * dt
 
-      # Collisions
-      velocityLine = Line
-        start: self.position()
-        end: self.position().add(self.velocity().scale(dt))
+      I.velocity = I.velocity.clamp(Math.max(speed, 0))
 
-      [nearestHit, line] = engine.lineCollision(velocityLine)
+  self.physics = (dt) ->
+    if I.y <= waterLevel
+      PHYSICS.air(dt)
+    else
+      PHYSICS.water(dt)
 
-      if nearestHit
-        normal = line.normal()
-        projection = I.velocity.dot(normal)
-        collisionResponse = normal.scale(-(1 + coefficientOfRestitution) * projection)
-        I.velocity = I.velocity.add(collisionResponse)
+    # Collisions
+    velocityLine = Line
+      start: self.position()
+      end: self.position().add(self.velocity().scale(dt))
 
-  self.physics = PHYSICS.air
+    [nearestHit, line] = engine.lineCollision(velocityLine)
+
+    if nearestHit
+      normal = line.normal()
+      projection = I.velocity.dot(normal)
+      collisionResponse = normal.scale(-(1 + coefficientOfRestitution) * projection)
+      I.velocity = I.velocity.add(collisionResponse)
+
+    # TODO Come to a rest gently
 
   return {}

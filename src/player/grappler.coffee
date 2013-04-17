@@ -7,6 +7,7 @@ Player.Grappler = (I, self) ->
       grappleAttached: null
       grappleLength: 0
       grappleRate: 1800
+      maxLength: 2400
 
   hook = (n=0) ->
     I.grapplingHooks[n]
@@ -15,6 +16,10 @@ Player.Grappler = (I, self) ->
     I.grapplingHooks
 
   checkGrappleHits = (hook, elapsedTime) ->
+    if hook.grappleLength > hook.maxLength
+      ungrapple(hook)
+      return
+
     source = hook.grappleStart
 
     start = grapplePosition(hook)
@@ -72,12 +77,12 @@ Player.Grappler = (I, self) ->
           direction = grappleDirection(hook)
 
           # Elasticity
-          length = Math.min(direction.length() / 40, 6)
+          length = Math.min(direction.length() / 40, 5)
 
-          force = direction.norm(length * 1000)
+          force = direction.norm(length * 500 * elapsedTime)
 
-          I.velocity.x += force.x * elapsedTime
-          I.velocity.y += force.y * elapsedTime
+          I.velocity.x += force.x
+          I.velocity.y += force.y
         else
           grapple(hook, elapsedTime)
           checkGrappleHits(hook, elapsedTime)

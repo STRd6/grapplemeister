@@ -2,24 +2,29 @@ canvas = $("canvas").pixieCanvas()
 
 Engine.defaultModules.push "Gamepads"
 
+window.waterLevel = App.height
+
+window.Arena =
+  width: App.width * 2
+  height: App.height * 1.5
+
 window.engine = Engine
   backgroundColor: "#FFF"
   canvas: canvas
-  zSort: true
   FPS: 60
 
-engine.on "overlay", (canvas) ->
-  canvas.withTransform Matrix.translation(200, 0), ->
-    controller = engine.controller()
-    controller.drawDebug(canvas)
+# engine.on "overlay", (canvas) ->
+#   canvas.withTransform Matrix.translation(200, 0), ->
+#     controller = engine.controller()
+#     controller.drawDebug(canvas)
 
 engine.include "Editor"
 
 boundaryLines = [
   Point(0, 0),
-  Point(App.width, 0),
-  Point(App.width, App.height),
-  Point(0, App.height)
+  Point(Arena.width, 0),
+  Point(Arena.width, Arena.height),
+  Point(0, Arena.height)
 ].map (p, i, a) ->
   Line
     start: p
@@ -27,6 +32,17 @@ boundaryLines = [
 
 engine.add "Wall",
   lines: boundaryLines
+
+engine.add "CameraTarget"
+
+engine.on "draw", (canvas) ->
+  canvas.withTransform engine.camera().transform(), (canvas) ->
+    canvas.drawRect
+      x: 0
+      y: waterLevel
+      width: Arena.width
+      height: Arena.height - waterLevel
+      color: "rgba(0, 0, 255, 0.5)"
 
 engine.lineCollision = (line) ->
   # TODO: All walls
