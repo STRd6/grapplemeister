@@ -1,3 +1,5 @@
+#= require_tree .
+
 canvas = $("canvas").pixieCanvas()
 
 Engine.defaultModules.push "Gamepads"

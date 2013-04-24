@@ -7,6 +7,12 @@ task :setup do
   sh "mkdir -p src"
 end
 
+task :start do
+  require "bjork"
+
+  Bjork::Server.run!
+end
+
 task :clean do
   `rm -r build`
 end
